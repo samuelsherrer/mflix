@@ -114,15 +114,15 @@ namespace M220N.Repositories
             params string[] countries
             )
         {
-            // TODO Ticket: Projection - Search for movies by ``country`` and use projection to
-            // return only the ``Id`` and ``Title`` fields
-            //
-            //return await _moviesCollection
-            //   .Find(...)
-            //   .Project(...)
-            //   .ToListAsync(cancellationToken);
+            var project = Builders<Movie>.Projection.Include("title").Include("_id");
+            var filter = Builders<Movie>.Filter.In("countries", countries);
+            var sort = Builders<Movie>.Sort.Descending(m => m.Title);
 
-            return null;
+            return await _moviesCollection
+                .Find(filter)
+                .Project<MovieByCountryProjection>(project)
+                .Sort(sort)
+                .ToListAsync(cancellationToken);
         }
 
         /// <summary>
@@ -187,23 +187,15 @@ namespace M220N.Repositories
             string sortKey = DefaultSortKey, int limit = DefaultMoviesPerPage,
             int page = 0, params string[] genres)
         {
-            var returnValue = new List<Movie>();
-
+            var filter = Builders<Movie>.Filter.In("genres", genres);
             var sort = new BsonDocument(sortKey, DefaultSortOrder);
-
-            // TODO Ticket: Enable filtering of movies by genre.
-            // If you get stuck see the ``GetMoviesByCastAsync`` method above.
-            /*return await _moviesCollection
-               .Find(...)
-               .ToListAsync(cancellationToken);*/
-
-            // // TODO Ticket: Paging
-            // TODO Ticket: Paging
-            // Modify the code you added in the Text and Subfield ticket to
-            // include pagination. Refer to the other methods in this class
-            // if you need a hint.
-
-            return returnValue;
+            
+            return await _moviesCollection
+               .Find(filter)
+               .Skip(page * limit)
+               .Sort(sort)
+               .Limit(limit)
+               .ToListAsync(cancellationToken);
         }
 
         /// <summary>
