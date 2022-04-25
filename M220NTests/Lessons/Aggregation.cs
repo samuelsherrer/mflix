@@ -46,12 +46,11 @@ namespace M220NLessons
          */
 
         [Test]
-        public void CountMovies()
+        public async Task CountMovies()
         {
             // This stage finds all movies that have a specific director
             var matchStage = new BsonDocument("$match",
                 new BsonDocument("directors", "Rob Reiner"));
-
 
             // This stage sorts the results by the number of reviews,
             // in descending order
@@ -84,13 +83,8 @@ namespace M220NLessons
                     projectionStage
                 });
 
-            
-            var result = _moviesCollection.Aggregate(pipeline).ToList();
-            /* Note: we're making a synchronous Aggregate() call.
-             * If you want a challenge, change the line above to make an
-             * asynchronous call (hint: you'll need to make 2 changes),
-             * and then confirm the unit test still passes.
-             */
+            var collections = await _moviesCollection.AggregateAsync(pipeline);
+            var result = collections.ToList();
 
             Assert.AreEqual(14, result.Count);
             var firstMovie = result[0];
