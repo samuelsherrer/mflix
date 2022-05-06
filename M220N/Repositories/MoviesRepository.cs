@@ -92,15 +92,9 @@ namespace M220N.Repositories
                         (Movie m) => m.Comments)
                     .FirstOrDefaultAsync(cancellationToken);
             }
-
             catch (Exception ex)
             {
-                // TODO Ticket: Error Handling
-                // Catch the exception and check the exception type and message contents.
-                // Return null if the exception is due to a bad/missing Id. Otherwise,
-                // throw.
-
-                throw;
+                return null;
             }
         }
 
