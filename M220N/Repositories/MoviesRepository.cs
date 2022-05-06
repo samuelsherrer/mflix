@@ -59,7 +59,7 @@ namespace M220N.Repositories
             string sort = DefaultSortKey, int sortDirection = DefaultSortOrder,
             CancellationToken cancellationToken = default)
         {
-            var skip =  moviesPerPage * page;
+            var skip = moviesPerPage * page;
             var limit = moviesPerPage;
 
 
@@ -86,9 +86,10 @@ namespace M220N.Repositories
             {
                 return await _moviesCollection.Aggregate()
                     .Match(Builders<Movie>.Filter.Eq(x => x.Id, movieId))
-                    // Ticket: Get Comments
-                    // Add a lookup stage that includes the
-                    // comments associated with the retrieved movie
+                    .Lookup(_commentsCollection,
+                        m => m.Id,
+                        c => c.MovieId,
+                        (Movie m) => m.Comments)
                     .FirstOrDefaultAsync(cancellationToken);
             }
 
@@ -112,7 +113,7 @@ namespace M220N.Repositories
         public async Task<IReadOnlyList<MovieByCountryProjection>> GetMoviesByCountryAsync(
             CancellationToken cancellationToken = default,
             params string[] countries
-            )
+        )
         {
             var project = Builders<Movie>.Projection.Include("title").Include("_id");
             var filter = Builders<Movie>.Filter.In("countries", countries);
@@ -189,13 +190,13 @@ namespace M220N.Repositories
         {
             var filter = Builders<Movie>.Filter.In("genres", genres);
             var sort = new BsonDocument(sortKey, DefaultSortOrder);
-            
+
             return await _moviesCollection
-               .Find(filter)
-               .Skip(page * limit)
-               .Sort(sort)
-               .Limit(limit)
-               .ToListAsync(cancellationToken);
+                .Find(filter)
+                .Skip(page * limit)
+                .Sort(sort)
+                .Limit(limit)
+                .ToListAsync(cancellationToken);
         }
 
         /// <summary>
