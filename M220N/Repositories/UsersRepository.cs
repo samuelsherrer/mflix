@@ -78,7 +78,7 @@ namespace M220N.Repositories
 
                 await _usersCollection
                     .WithWriteConcern(WriteConcern.WMajority)
-                    .InsertOneAsync(user, cancellationToken);
+                    .InsertOneAsync(user, null, cancellationToken);
 
                 var newUser = await GetUserAsync(user.Email, cancellationToken);
                 return new UserResponse(newUser);

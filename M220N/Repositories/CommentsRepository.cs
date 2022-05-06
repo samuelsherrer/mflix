@@ -47,13 +47,11 @@ namespace M220N.Repositories
                     MovieId = movieId
                 };
 
-                // Ticket: Add a new Comment
-                // Implement InsertOneAsync() to insert a
-                // new comment into the comments collection.
+                await _commentsCollection.InsertOneAsync(newComment, null, cancellationToken);
 
                 return await _moviesRepository.GetMovieAsync(movieId.ToString(), cancellationToken);
             }
-            catch
+            catch (Exception ex)
             {
                 return null;
             }
@@ -72,16 +70,18 @@ namespace M220N.Repositories
             ObjectId movieId, ObjectId commentId, string comment,
             CancellationToken cancellationToken = default)
         {
-            // Ticket: Update a Comment
-            // Implement UpdateOneAsync() to update an
-            // existing comment. Remember that only the original
-            // comment owner can update the comment!
-            //
-            // // return await _commentsCollection.UpdateOneAsync(
-            // // Builders<Comment>.Filter.Where(...),
-            // // Builders<Comment>.Update.Set(...).Set(...),
-            // // new UpdateOptions { ... } ,
-            // // cancellationToken);
+            var commentDocument = _commentsCollection
+                .FindAsync((a => a.Id == commentId && a.Email == user.Email), cancellationToken: cancellationToken);
+
+            if (commentDocument != null)
+            {
+                return await _commentsCollection.UpdateOneAsync(
+                    Builders<Comment>.Filter.Where(c => c.Id == commentId && c.Email == user.Email),
+                    Builders<Comment>.Update
+                        .Set("text", comment),
+                        new UpdateOptions { IsUpsert = false},
+                    cancellationToken);
+            }
 
             return null;
         }

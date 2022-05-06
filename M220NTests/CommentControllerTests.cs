@@ -180,7 +180,10 @@ namespace M220NTests
         }
         private async Task<CommentController> GetControllerWithAuthAsync()
         {
-            await _userController.AddUser(_opinionatedUser);
+            var user = await _userRepository.GetUserAsync(_opinionatedUser.Email);
+            
+            if (user is null) await _userController.AddUser(_opinionatedUser);
+                
             var loginResult = (OkObjectResult)await _userController.Login(_opinionatedUser);
             var newResultValue = (UserResponse)loginResult.Value;
             var newCommentController = _commentController;
