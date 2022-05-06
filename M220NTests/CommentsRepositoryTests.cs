@@ -26,7 +26,7 @@ namespace M220NTests
             var result = await _commentsRepository.MostActiveCommentersAsync();
             Assert.AreEqual(20, result.Report.Count);
             Assert.AreEqual(277, result.Report.First().Count);
-            Assert.AreEqual(292, result.Report.Last().Count);
+            Assert.AreEqual(242, result.Report.Last().Count);
         }
     }
 }

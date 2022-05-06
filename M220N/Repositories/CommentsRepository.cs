@@ -79,7 +79,7 @@ namespace M220N.Repositories
                     Builders<Comment>.Filter.Where(c => c.Id == commentId && c.Email == user.Email),
                     Builders<Comment>.Update
                         .Set("text", comment),
-                        new UpdateOptions { IsUpsert = false},
+                    new UpdateOptions {IsUpsert = false},
                     cancellationToken);
             }
 
@@ -111,27 +111,34 @@ namespace M220N.Repositories
 
         public async Task<TopCommentsProjection> MostActiveCommentersAsync()
         {
-            /**
-                TODO Ticket: User Report
-                Build a pipeline that returns the 20 most frequent commenters on the MFlix
-                site. You can do this by counting the number of occurrences of a user's
-                email in the `comments` collection.
+            var group = new BsonDocument("$group",
+                new BsonDocument
+                {
+                    {"_id", "$email"},
+                    {
+                        "count",
+                        new BsonDocument("$sum", 1)
+                    }
+                });
 
-                In addition, set the ReadConcern on the _commentsCollection to
-                ensure the most accurate reads occur.
-            */
+            var sort = new BsonDocument("$sort",
+                new BsonDocument("count", -1));
+            
+            var limit = new BsonDocument("$limit", 20);
+
+            var pipeline = new BsonDocument[]
+            {
+                group,
+                sort,
+                limit
+            };
+
             try
             {
-                List<ReportProjection> result = null;
-                // TODO Ticket: User Report
-                // Return the 20 users who have commented the most on MFlix. You will need to use
-                // the Group, Sort, Limit, and Project methods of the Aggregation pipeline.
-                //
-                // // result = await _commentsCollection
-                // //   .WithReadConcern(...)
-                // //   .Aggregate()
-                // //   .Group(...)
-                // //   .Sort(...).Limt(...).Project(...).ToListAsync()
+                var result = await _commentsCollection
+                    .WithReadConcern(ReadConcern.Majority)
+                    .Aggregate(PipelineDefinition<Comment,ReportProjection>.Create(pipeline))
+                    .ToListAsync();
 
                 return new TopCommentsProjection(result);
             }
